@@ -18,4 +18,12 @@ public class Config {
     public static final String DATA_NAME = "data_name";
     public static final String DATA_USERNAME = "data_username";
     public static final String DATA_ISLOGGEDIN = "data_isloggedin";
+
+    public static String getCategoryListUrl() {
+        return BASE_URL+"categories";
+    }
+
+    public static String getAddCategoryUrl() {
+        return BASE_URL+"categories";
+    }
 }

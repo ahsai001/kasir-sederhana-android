@@ -12,4 +12,9 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
     <string name="account_type">com.ahsailabs.kasirsederhana</string>
+    <string name="menu_order">Order</string>
+    <string name="menu_category">Category</string>
+    <string name="menu_menu">Menu</string>
+    <string name="wording_simpan">Simpan</string>
+    <string name="category_form_name_title">Name :</string>
 </resources>
