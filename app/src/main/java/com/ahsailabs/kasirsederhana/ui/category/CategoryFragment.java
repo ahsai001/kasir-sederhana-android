@@ -4,23 +4,22 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.ahsailabs.kasirsederhana.CategoryRepoResponse;
 import com.ahsailabs.kasirsederhana.LoginActivity;
+import com.ahsailabs.kasirsederhana.MainViewModel;
 import com.ahsailabs.kasirsederhana.R;
 import com.ahsailabs.kasirsederhana.configs.Config;
 import com.ahsailabs.kasirsederhana.ui.category.models.AddCategoryResponse;
 import com.ahsailabs.kasirsederhana.ui.category.models.CategoryItem;
-import com.ahsailabs.kasirsederhana.ui.category.models.CategoryResponse;
 import com.ahsailabs.kasirsederhana.utils.HttpUtil;
 import com.ahsailabs.kasirsederhana.utils.InfoUtil;
 import com.androidnetworking.AndroidNetworking;
@@ -38,15 +37,15 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class CategoryFragment extends Fragment {
-    private CategoryViewModel categoryViewModel;
+    private MainViewModel mainViewModel;
 
     @BindView(R.id.tieName) TextInputEditText tieName;
     @BindView(R.id.mbtnSave) MaterialButton mbtnSave;
     @BindView(R.id.rvCategory) RecyclerView rvCategory;
     @BindView(R.id.tilName) TextInputLayout tilName;
 
-    private List<CategoryItem> categoryItemList = new ArrayList<>();
     private CategoryAdapter categoryAdapter;
+    private List<CategoryItem> categoryItemList;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,7 +54,6 @@ public class CategoryFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        categoryViewModel =  new ViewModelProvider(this).get(CategoryViewModel.class);
         return inflater.inflate(R.layout.fragment_category, container, false);
     }
 
@@ -63,22 +61,60 @@ public class CategoryFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         loadViews(view);
-        setupViews(view);
     }
 
-    private void setupViews(View view) {
-        categoryAdapter = new CategoryAdapter(view.getContext(), categoryItemList);
-        rvCategory.setLayoutManager(new LinearLayoutManager(view.getContext()));
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        setupViews();
+    }
+
+
+    private void setupViews() {
+        categoryItemList = new ArrayList<>();
+        categoryAdapter = new CategoryAdapter(getActivity(), categoryItemList);
+        rvCategory.setLayoutManager(new LinearLayoutManager(getActivity()));
         rvCategory.setAdapter(categoryAdapter);
-
-
         mbtnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 validateAndSendData();
             }
         });
+
+
+        mainViewModel = new ViewModelProvider(getActivity()).get(MainViewModel.class);
+
+        CategoryRepoResponse categoryRepoResponse = mainViewModel.loadCategoryData();
+        categoryRepoResponse.listLiveData.observe(getActivity(), new Observer<List<CategoryItem>>() {
+            @Override
+            public void onChanged(List<CategoryItem> categoryItemList) {
+                CategoryFragment.this.categoryItemList.clear();
+                CategoryFragment.this.categoryItemList.addAll(categoryItemList);
+                categoryAdapter.notifyDataSetChanged();
+            }
+        });
+
+        categoryRepoResponse.infoLiveData.observe(getActivity(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                InfoUtil.showToast(getActivity(), s);
+            }
+        });
+
+        categoryRepoResponse.statusLiveData.observe(getActivity(), new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                if(integer == 401){
+                    LoginActivity.start(getActivity());
+                    getActivity().finish();
+                }
+            }
+        });
     }
+
 
     private void validateAndSendData() {
         String strName = tieName.getText().toString();
@@ -102,7 +138,7 @@ public class CategoryFragment extends Fragment {
                     public void onResponse(AddCategoryResponse response) {
                         if(response.getStatus()==1){
                             CategoryItem categoryItem = response.getData();
-                            categoryItemList.add(0, categoryItem);
+                            CategoryFragment.this.categoryItemList.add(0, categoryItem);
                             categoryAdapter.notifyItemInserted(0);
                         } else {
                             InfoUtil.showToast(getActivity(), response.getMessage());
@@ -120,39 +156,6 @@ public class CategoryFragment extends Fragment {
         ButterKnife.bind(this, view);
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
-        loadData();
-    }
 
-    private void loadData() {
-        AndroidNetworking.get(Config.getCategoryListUrl())
-                .setOkHttpClient(HttpUtil.getCLient(getActivity()))
-                .setPriority(Priority.HIGH)
-                .setTag("category-list")
-                .build()
-                .getAsObject(CategoryResponse.class, new ParsedRequestListener<CategoryResponse>() {
-                    @Override
-                    public void onResponse(CategoryResponse response) {
-                        if(response.getStatus()==1){
-                            categoryItemList.addAll(response.getData());
-                            categoryAdapter.notifyDataSetChanged();
-                        } else {
-                            InfoUtil.showToast(getActivity(), response.getMessage());
-                        }
-                    }
-
-                    @Override
-                    public void onError(ANError anError) {
-                        InfoUtil.showToast(getActivity(), anError.getMessage());
-                        if(anError.getErrorCode()==401){
-                            LoginActivity.start(getActivity());
-                            getActivity().finish();
-                        }
-                    }
-                });
-
-    }
 }

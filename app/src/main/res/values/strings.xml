@@ -16,5 +16,9 @@
     <string name="menu_category">Category</string>
     <string name="menu_menu">Menu</string>
     <string name="wording_simpan">Simpan</string>
-    <string name="category_form_name_title">Name :</string>
+    <string name="category_form_name_title">Name : </string>
+    <string name="menu_form_name_title">"Name : "</string>
+    <string name="menu_form_price_title">"Harga : "</string>
+    <string name="menu_form_photo_title">Foto : </string>
+    <string name="menu_form_category_title">Category : </string>
 </resources>

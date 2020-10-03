@@ -15,9 +15,6 @@ import android.view.ViewGroup;
 import com.ahsailabs.kasirsederhana.R;
 
 public class ProfileFragment extends Fragment {
-
-    private ProfileViewModel mViewModel;
-
     public static ProfileFragment newInstance() {
         return new ProfileFragment();
     }
@@ -31,8 +28,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this).get(ProfileViewModel.class);
-        // TODO: Use the ViewModel
-    }
+        }
 
 }
